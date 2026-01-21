@@ -1,0 +1,1504 @@
+
+DesignArena
+
+
+
+
+
+
+
+Claude Opus 4.5
+Claude Opus 4.5
+1st
+
+View in Profile
+
+
+Website Arena
+Wanna try again?
+Build a cross-platform music application (mobile + desktop) that supports 3D Audio, Spatial Audio, and Head Tracking for an immersive listening experience.
+Core Features:
+Music Library Management
+Allow users to upload, import, or stream multiple songs
+Support common audio formats (MP3, WAV, FLAC, AAC)
+Organize songs into playlists, albums, and favorites
+3D Audio Engine
+Implement real-time 3D sound positioning (left/right/front/back/above)
+Allow users to place sound sources in a 3D space
+Support binaural rendering using HRTF
+Spatial Audio Mode
+Enable spatial soundstage simulation (room, hall, studio, open space)
+Adjustable room size, reverb depth, and sound distance
+Toggle between stereo, surround, and spatial audio
+Head Tracking Mode
+Integrate device gyroscope / accelerometer or supported headphones
+Lock sound source position while the user moves their head
+Smooth latency-free tracking with calibration option
+Playback Controls
+Play, pause, seek, loop, shuffle
+Equalizer (bass, treble, mid)
+Spatial intensity and 3D depth slider
+UI / UX
+Modern, immersive UI with a 3D visualizer
+Real-time visual representation of sound position
+Dark mode + minimal futuristic design
+Performance & Compatibility
+Optimized low-latency audio processing
+Works with headphones (AirPods, spatial headsets, VR headsets)
+Offline playback support
+Tech Preferences:
+Frontend: React Native / Flutter / Swift / Kotlin
+Audio Engine: Web Audio API / OpenAL / FMOD / Unity Audio / AVAudioEngine
+Head Tracking: CoreMotion / Android Sensors / WebXR
+Optional: Unity or Unreal Engine for full 3D experience
+Goal:
+Create a production-ready immersive music app where users can upload many songs and experience realistic 3D spatial audio with head tracking.
+Pluto
+v0-1.5-md
+GLM 4.6
+Claude Opus 4.5
+
+
+GLM 4.6
+GLM 4.6
+2nd
+
+
+Pluto
+Pluto
+3rd
+
+
+v0-1.5-md
+v0-1.5-md
+4th
+
+
+
+Anthropic logo
+Claude Opus 4.5
+
+Preview
+Code
+index.html
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SpatialSound - Immersive 3D Audio Player</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+        
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --secondary: #ec4899;
+            --bg-dark: #0a0a0f;
+            --bg-card: #13131a;
+            --bg-hover: #1a1a24;
+            --text-primary: #ffffff;
+            --text-secondary: #9ca3af;
+        }
+        
+        body {
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            overflow-x: hidden;
+        }
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(236, 72, 153, 0.1) 100%);
+        }
+        
+        .glow-primary {
+            box-shadow: 0 0 40px rgba(99, 102, 241, 0.3);
+        }
+        
+        .glow-secondary {
+            box-shadow: 0 0 40px rgba(236, 72, 153, 0.3);
+        }
+        
+        .glass-card {
+            background: rgba(19, 19, 26, 0.8);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .range-slider {
+            -webkit-appearance: none;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            height: 4px;
+            border-radius: 2px;
+        }
+        
+        .range-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+            background: white;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(99, 102, 241, 0.5);
+        }
+        
+        .visualizer-bar {
+            animation: pulse 0.5s ease-in-out infinite alternate;
+        }
+        
+        @keyframes pulse {
+            from { transform: scaleY(0.3); }
+            to { transform: scaleY(1); }
+        }
+        
+        .rotate-slow {
+            animation: rotateSlow 20s linear infinite;
+        }
+        
+        @keyframes rotateSlow {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        .track-item:hover {
+            background: var(--bg-hover);
+        }
+        
+        .eq-bar {
+            transition: height 0.1s ease;
+        }
+        
+        #visualizer-container {
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(60px);
+            opacity: 0.6;
+            animation: float 6s ease-in-out infinite;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+        
+        .spatial-grid {
+            background-image: 
+                linear-gradient(rgba(99, 102, 241, 0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(99, 102, 241, 0.1) 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+        
+        .sound-source {
+            cursor: grab;
+            transition: transform 0.2s ease;
+        }
+        
+        .sound-source:hover {
+            transform: scale(1.2);
+        }
+        
+        .tab-active {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+        }
+        
+        .waveform {
+            display: flex;
+            align-items: center;
+            gap: 2px;
+            height: 40px;
+        }
+        
+        .waveform-bar {
+            width: 3px;
+            background: linear-gradient(to top, var(--primary), var(--secondary));
+            border-radius: 2px;
+            animation: waveform 0.5s ease-in-out infinite alternate;
+        }
+        
+        @keyframes waveform {
+            from { height: 20%; }
+            to { height: 100%; }
+        }
+        
+        .head-tracking-indicator {
+            transition: transform 0.1s ease;
+        }
+        
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: var(--bg-dark);
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: var(--primary);
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+    <!-- Main Container -->
+    <div class="flex h-screen">
+        <!-- Sidebar -->
+        <aside class="w-64 bg-[#0d0d12] border-r border-white/5 flex flex-col">
+            <!-- Logo -->
+            <div class="p-6 flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-pink-500 flex items-center justify-center">
+                    <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>
+                    </svg>
+                </div>
+                <span class="text-xl font-bold bg-gradient-to-r from-indigo-400 to-pink-400 bg-clip-text text-transparent">SpatialSound</span>
+            </div>
+            
+            <!-- Navigation -->
+            <nav class="flex-1 px-4">
+                <div class="mb-6">
+                    <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 px-3">Menu</h3>
+                    <ul class="space-y-1">
+                        <li>
+                            <button onclick="showSection('home')" class="nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-white bg-white/5 hover:bg-white/10 transition">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+                                </svg>
+                                Home
+                            </button>
+                        </li>
+                        <li>
+                            <button onclick="showSection('library')" class="nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"/>
+                                </svg>
+                                Library
+                            </button>
+                        </li>
+                        <li>
+                            <button onclick="showSection('spatial')" class="nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/>
+                                </svg>
+                                3D Spatial
+                            </button>
+                        </li>
+                        <li>
+                            <button onclick="showSection('equalizer')" class="nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/>
+                                </svg>
+                                Equalizer
+                            </button>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="mb-6">
+                    <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 px-3">Playlists</h3>
+                    <ul class="space-y-1" id="playlists-container">
+                        <li>
+                            <button class="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition">
+                                <span class="w-8 h-8 rounded bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center text-xs">🎵</span>
+                                Favorites
+                            </button>
+                        </li>
+                        <li>
+                            <button class="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition">
+                                <span class="w-8 h-8 rounded bg-gradient-to-br from-pink-500 to-orange-500 flex items-center justify-center text-xs">🎸</span>
+                                Chill Vibes
+                            </button>
+                        </li>
+                        <li>
+                            <button class="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition">
+                                <span class="w-8 h-8 rounded bg-gradient-to-br from-green-500 to-teal-500 flex items-center justify-center text-xs">🎧</span>
+                                Spatial Mix
+                            </button>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+            
+            <!-- Upload Button -->
+            <div class="p-4">
+                <button onclick="document.getElementById('file-upload').click()" class="w-full py-3 rounded-xl bg-gradient-to-r from-indigo-500 to-pink-500 text-white font-medium hover:opacity-90 transition flex items-center justify-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                    </svg>
+                    Upload Music
+                </button>
+                <input type="file" id="file-upload" accept="audio/*" multiple class="hidden" onchange="handleFileUpload(event)">
+            </div>
+        </aside>
+        
+        <!-- Main Content -->
+        <main class="flex-1 flex flex-col overflow-hidden">
+            <!-- Top Bar -->
+            <header class="h-16 border-b border-white/5 flex items-center justify-between px-6">
+                <div class="flex items-center gap-4">
+                    <button class="p-2 rounded-lg hover:bg-white/5 transition">
+                        <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                        </svg>
+                    </button>
+                    <button class="p-2 rounded-lg hover:bg-white/5 transition">
+                        <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                        </svg>
+                    </button>
+                </div>
+                
+                <div class="flex items-center gap-4">
+                    <!-- Search -->
+                    <div class="relative">
+                        <input type="text" placeholder="Search music..." class="w-64 bg-white/5 border border-white/10 rounded-full py-2 pl-10 pr-4 text-sm focus:outline-none focus:border-indigo-500 transition">
+                        <svg class="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                        </svg>
+                    </div>
+                    
+                    <!-- Head Tracking Toggle -->
+                    <button id="head-tracking-btn" onclick="toggleHeadTracking()" class="flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 hover:bg-white/10 transition">
+                        <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+                        </svg>
+                        <span class="text-sm text-gray-400">Head Tracking</span>
+                        <div id="tracking-indicator" class="w-2 h-2 rounded-full bg-gray-500"></div>
+                    </button>
+                    
+                    <!-- Profile -->
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-pink-500 flex items-center justify-center text-sm font-medium">
+                            U
+                        </div>
+                    </div>
+                </div>
+            </header>
+            
+            <!-- Content Area -->
+            <div class="flex-1 overflow-y-auto">
+                <!-- Home Section -->
+                <section id="section-home" class="p-6">
+                    <!-- Hero Visualizer -->
+                    <div id="visualizer-container" class="relative h-64 rounded-2xl gradient-bg overflow-hidden mb-8">
+                        <div class="orb w-64 h-64 bg-indigo-500 top-0 left-1/4"></div>
+                        <div class="orb w-48 h-48 bg-pink-500 bottom-0 right-1/4" style="animation-delay: -3s;"></div>
+                        
+                        <div class="absolute inset-0 flex items-center justify-center">
+                            <div id="3d-visualizer" class="w-full h-full"></div>
+                        </div>
+                        
+                        <!-- Current Track Info Overlay -->
+                        <div class="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black/80 to-transparent">
+                            <div class="flex items-end justify-between">
+                                <div>
+                                    <p class="text-sm text-indigo-400 mb-1">Now Playing</p>
+                                    <h2 id="current-track-title" class="text-2xl font-bold mb-1">Select a track</h2>
+                                    <p id="current-track-artist" class="text-gray-400">Upload music to get started</p>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <span class="px-3 py-1 rounded-full bg-indigo-500/20 text-indigo-400 text-sm">3D Audio</span>
+                                    <span class="px-3 py-1 rounded-full bg-pink-500/20 text-pink-400 text-sm">Spatial</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Quick Controls -->
+                    <div class="grid grid-cols-4 gap-4 mb-8">
+                        <div class="glass-card rounded-xl p-4">
+                            <div class="flex items-center gap-3 mb-3">
+                                <div class="w-10 h-10 rounded-lg bg-indigo-500/20 flex items-center justify-center">
+                                    <svg class="w-5 h-5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <h3 class="font-medium">3D Depth</h3>
+                                    <p class="text-xs text-gray-400">Spatial intensity</p>
+                                </div>
+                            </div>
+                            <input type="range" id="depth-slider" min="0" max="100" value="70" class="w-full range-slider" onchange="update3DDepth(this.value)">
+                            <div class="flex justify-between text-xs text-gray-500 mt-1">
+                                <span>Flat</span>
+                                <span id="depth-value">70%</span>
+                                <span>Deep</span>
+                            </div>
+                        </div>
+                        
+                        <div class="glass-card rounded-xl p-4">
+                            <div class="flex items-center gap-3 mb-3">
+                                <div class="w-10 h-10 rounded-lg bg-pink-500/20 flex items-center justify-center">
+                                    <svg class="w-5 h-5 text-pink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <h3 class="font-medium">Room Size</h3>
+                                    <p class="text-xs text-gray-400">Environment</p>
+                                </div>
+                            </div>
+                            <input type="range" id="room-slider" min="0" max="100" value="50" class="w-full range-slider" onchange="updateRoomSize(this.value)">
+                            <div class="flex justify-between text-xs text-gray-500 mt-1">
+                                <span>Studio</span>
+                                <span id="room-value">50%</span>
+                                <span>Hall</span>
+                            </div>
+                        </div>
+                        
+                        <div class="glass-card rounded-xl p-4">
+                            <div class="flex items-center gap-3 mb-3">
+                                <div class="w-10 h-10 rounded-lg bg-purple-500/20 flex items-center justify-center">
+                                    <svg class="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15.414a5 5 0 001.414 1.414m2.828-9.9a9 9 0 0112.728 0"/>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <h3 class="font-medium">Reverb</h3>
+                                    <p class="text-xs text-gray-400">Echo depth</p>
+                                </div>
+                            </div>
+                            <input type="range" id="reverb-slider" min="0" max="100" value="30" class="w-full range-slider" onchange="updateReverb(this.value)">
+                            <div class="flex justify-between text-xs text-gray-500 mt-1">
+                                <span>Dry</span>
+                                <span id="reverb-value">30%</span>
+                                <span>Wet</span>
+                            </div>
+                        </div>
+                        
+                        <div class="glass-card rounded-xl p-4">
+                            <div class="flex items-center gap-3 mb-3">
+                                <div class="w-10 h-10 rounded-lg bg-green-500/20 flex items-center justify-center">
+                                    <svg class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.636 18.364a9 9 0 010-12.728m12.728 0a9 9 0 010 12.728m-9.9-2.829a5 5 0 010-7.07m7.072 0a5 5 0 010 7.07M13 12a1 1 0 11-2 0 1 1 0 012 0z"/>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <h3 class="font-medium">Audio Mode</h3>
+                                    <p class="text-xs text-gray-400">Output type</p>
+                                </div>
+                            </div>
+                            <select id="audio-mode" class="w-full bg-white/5 border border-white/10 rounded-lg py-2 px-3 text-sm focus:outline-none focus:border-indigo-500" onchange="updateAudioMode(this.value)">
+                                <option value="stereo">Stereo</option>
+                                <option value="spatial" selected>Spatial Audio</option>
+                                <option value="surround">5.1 Surround</option>
+                                <option value="binaural">Binaural 3D</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <!-- Recent Tracks -->
+                    <div>
+                        <h3 class="text-lg font-semibold mb-4">Your Library</h3>
+                        <div id="track-list" class="space-y-2">
+                            <!-- Tracks will be populated here -->
+                            <div class="text-center py-12 text-gray-500">
+                                <svg class="w-16 h-16 mx-auto mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"/>
+                                </svg>
+                                <p>No tracks uploaded yet</p>
+                                <p class="text-sm">Click "Upload Music" to add your songs</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                
+                <!-- Library Section -->
+                <section id="section-library" class="p-6 hidden">
+                    <h2 class="text-2xl font-bold mb-6">Music Library</h2>
+                    
+                    <!-- Filter Tabs -->
+                    <div class="flex gap-2 mb-6">
+                        <button class="px-4 py-2 rounded-full tab-active text-white text-sm font-medium">All Songs</button>
+                        <button class="px-4 py-2 rounded-full bg-white/5 text-gray-400 text-sm font-medium hover:bg-white/10 transition">Albums</button>
+                        <button class="px-4 py-2 rounded-full bg-white/5 text-gray-400 text-sm font-medium hover:bg-white/10 transition">Artists</button>
+                        <button class="px-4 py-2 rounded-full bg-white/5 text-gray-400 text-sm font-medium hover:bg-white/10 transition">Favorites</button>
+                    </div>
+                    
+                    <!-- Library Grid -->
+                    <div id="library-grid" class="grid grid-cols-5 gap-4">
+                        <!-- Library items will be populated here -->
+                    </div>
+                </section>
+                
+                <!-- 3D Spatial Section -->
+                <section id="section-spatial" class="p-6 hidden">
+                    <h2 class="text-2xl font-bold mb-6">3D Spatial Audio</h2>
+                    
+                    <div class="grid grid-cols-2 gap-6">
+                        <!-- 3D Sound Positioning -->
+                        <div class="glass-card rounded-2xl p-6">
+                            <h3 class="font-semibold mb-4">Sound Source Position</h3>
+                            <div id="spatial-canvas" class="relative h-80 rounded-xl bg-black/30 spatial-grid overflow-hidden">
+                                <!-- Listener (center) -->
+                                <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10">
+                                    <div id="listener-indicator" class="head-tracking-indicator w-12 h-12 rounded-full bg-white/20 border-2 border-white flex items-center justify-center">
+                                        <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/>
+                                        </svg>
+                                    </div>
+                                    <p class="text-xs text-center mt-1 text-gray-400">You</p>
+                                </div>
+                                
+                                <!-- Sound Source (draggable) -->
+                                <div id="sound-source" class="sound-source absolute w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-pink-500 flex items-center justify-center cursor-move glow-primary" style="top: 30%; left: 70%;">
+                                    <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>
+                                    </svg>
+                                </div>
+                                
+                                <!-- Direction Labels -->
+                                <span class="absolute top-2 left-1/2 -translate-x-1/2 text-xs text-gray-500">Front</span>
+                                <span class="absolute bottom-2 left-1/2 -translate-x-1/2 text-xs text-gray-500">Back</span>
+                                <span class="absolute left-2 top-1/2 -translate-y-1/2 text-xs text-gray-500">Left</span>
+                                <span class="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-gray-500">Right</span>
+                            </div>
+                            
+                            <div class="mt-4 grid grid-cols-3 gap-4">
+                                <div>
+                                    <label class="text-xs text-gray-400">X Position</label>
+                                    <input type="range" id="pos-x" min="-100" max="100" value="40" class="w-full range-slider mt-1" onchange="updateSoundPosition()">
+                                </div>
+                                <div>
+                                    <label class="text-xs text-gray-400">Y Position</label>
+                                    <input type="range" id="pos-y" min="-100" max="100" value="-40" class="w-full range-slider mt-1" onchange="updateSoundPosition()">
+                                </div>
+                                <div>
+                                    <label class="text-xs text-gray-400">Z Position (Height)</label>
+                                    <input type="range" id="pos-z" min="-100" max="100" value="0" class="w-full range-slider mt-1" onchange="updateSoundPosition()">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Environment Settings -->
+                        <div class="space-y-6">
+                            <div class="glass-card rounded-2xl p-6">
+                                <h3 class="font-semibold mb-4">Environment Preset</h3>
+                                <div class="grid grid-cols-2 gap-3">
+                                    <button onclick="setEnvironment('studio')" class="env-btn p-4 rounded-xl bg-white/5 hover:bg-white/10 transition text-left">
+                                        <span class="text-2xl mb-2 block">🎙️</span>
+                                        <span class="font-medium">Studio</span>
+                                        <p class="text-xs text-gray-400">Tight, dry sound</p>
+                                    </button>
+                                    <button onclick="setEnvironment('room')" class="env-btn p-4 rounded-xl bg-indigo-500/20 border border-indigo-500/50 text-left">
+                                        <span class="text-2xl mb-2 block">🏠</span>
+                                        <span class="font-medium">Room</span>
+                                        <p class="text-xs text-gray-400">Natural acoustics</p>
+                                    </button>
+                                    <button onclick="setEnvironment('hall')" class="env-btn p-4 rounded-xl bg-white/5 hover:bg-white/10 transition text-left">
+                                        <span class="text-2xl mb-2 block">🏛️</span>
+                                        <span class="font-medium">Concert Hall</span>
+                                        <p class="text-xs text-gray-400">Rich reverb</p>
+                                    </button>
+                                    <button onclick="setEnvironment('open')" class="env-btn p-4 rounded-xl bg-white/5 hover:bg-white/10 transition text-left">
+                                        <span class="text-2xl mb-2 block">🌲</span>
+                                        <span class="font-medium">Open Space</span>
+                                        <p class="text-xs text-gray-400">Wide soundstage</p>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="glass-card rounded-2xl p-6">
+                                <h3 class="font-semibold mb-4">Head Tracking Calibration</h3>
+                                <div class="flex items-center gap-4 mb-4">
+                                    <div class="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center">
+                                        <div id="head-rotation" class="text-3xl transition-transform duration-100">👤</div>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm text-gray-400">Current Rotation</p>
+                                        <p id="rotation-display" class="text-xl font-mono">0°</p>
+                                    </div>
+                                </div>
+                                <button onclick="calibrateHeadTracking()" class="w-full py-2 rounded-lg bg-white/5 hover:bg-white/10 transition text-sm">
+                                    Recalibrate Center Position
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                
+                <!-- Equalizer Section -->
+                <section id="section-equalizer" class="p-6 hidden">
+                    <h2 class="text-2xl font-bold mb-6">Equalizer</h2>
+                    
+                    <div class="grid grid-cols-3 gap-6">
+                        <!-- EQ Bands -->
+                        <div class="col-span-2 glass-card rounded-2xl p-6">
+                            <div class="flex items-center justify-between mb-6">
+                                <h3 class="font-semibold">10-Band Equalizer</h3>
+                                <div class="flex gap-2">
+                                    <button onclick="resetEQ()" class="px-3 py-1 rounded-lg bg-white/5 hover:bg-white/10 transition text-sm">Reset</button>
+                                    <select id="eq-preset" class="bg-white/5 border border-white/10 rounded-lg px-3 py-1 text-sm" onchange="loadEQPreset(this.value)">
+                                        <option value="flat">Flat</option>
+                                        <option value="bass">Bass Boost</option>
+                                        <option value="treble">Treble Boost</option>
+                                        <option value="vocal">Vocal</option>
+                                        <option value="electronic">Electronic</option>
+                                        <option value="rock">Rock</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-end justify-between h-64 px-4">
+                                <div class="eq-band flex flex-col items-center gap-2">
+                                    <input type="range" min="-12" max="12" value="0" class="eq-slider" orient="vertical" data-freq="32" oninput="updateEQ(this)">
+                                    <span class="text-xs text-gray-400">32</span>
+                                </div>
+                                <div class="eq-band flex flex-col items-center gap-2">
+                                    <input type="range" min="-12" max="12" value="0" class="eq-slider" orient="vertical" data-freq="64" oninput="updateEQ(this)">
+                                    <span class="text-xs text-gray-400">64</span>
+                                </div>
+                                <div class="eq-band flex flex-col items-center gap-2">
+                                    <input type="range" min="-12" max="12" value="0" class="eq-slider" orient="vertical" data-freq="125" oninput="updateEQ(this)">
+                                    <span class="text-xs text-gray-400">125</span>
+                                </div>
+                                <div class="eq-band flex flex-col items-center gap-2">
+                                    <input type="range" min="-12" max="12" value="0" class="eq-slider" orient="vertical" data-freq="250" oninput="updateEQ(this)">
+                                    <span class="text-xs text-gray-400">250</span>
+                                </div>
+                                <div class="eq-band flex flex-col items-center gap-2">
+                                    <input type="range" min="-12" max="12" value="0" class="eq-slider" orient="vertical" data-freq="500" oninput="updateEQ(this)">
+                                    <span class="text-xs text-gray-400">500</span>
+                                </div>
+                                <div class="eq-band flex flex-col items-center gap-2">
+                                    <input type="range" min="-12" max="12" value="0" class="eq-slider" orient="vertical" data-freq="1k" oninput="updateEQ(this)">
+                                    <span class="text-xs text-gray-400">1k</span>
+                                </div>
+                                <div class="eq-band flex flex-col items-center gap-2">
+                                    <input type="range" min="-12" max="12" value="0" class="eq-slider" orient="vertical" data-freq="2k" oninput="updateEQ(this)">
+                                    <span class="text-xs text-gray-400">2k</span>
+                                </div>
+                                <div class="eq-band flex flex-col items-center gap-2">
+                                    <input type="range" min="-12" max="12" value="0" class="eq-slider" orient="vertical" data-freq="4k" oninput="updateEQ(this)">
+                                    <span class="text-xs text-gray-400">4k</span>
+                                </div>
+                                <div class="eq-band flex flex-col items-center gap-2">
+                                    <input type="range" min="-12" max="12" value="0" class="eq-slider" orient="vertical" data-freq="8k" oninput="updateEQ(this)">
+                                    <span class="text-xs text-gray-400">8k</span>
+                                </div>
+                                <div class="eq-band flex flex-col items-center gap-2">
+                                    <input type="range" min="-12" max="12" value="0" class="eq-slider" orient="vertical" data-freq="16k" oninput="updateEQ(this)">
+                                    <span class="text-xs text-gray-400">16k</span>
+                                </div>
+                            </div>
+                            
+                            <style>
+                                .eq-slider {
+                                    writing-mode: vertical-lr;
+                                    direction: rtl;
+                                    width: 20px;
+                                    height: 200px;
+                                    -webkit-appearance: none;
+                                    background: linear-gradient(to top, #6366f1, #ec4899);
+                                    border-radius: 10px;
+                                    opacity: 0.8;
+                                }
+                                .eq-slider::-webkit-slider-thumb {
+                                    -webkit-appearance: none;
+                                    width: 24px;
+                                    height: 24px;
+                                    background: white;
+                                    border-radius: 50%;
+                                    cursor: pointer;
+                                    box-shadow: 0 0 10px rgba(99, 102, 241, 0.5);
+                                }
+                            </style>
+                        </div>
+                        
+                        <!-- Quick Controls -->
+                        <div class="space-y-4">
+                            <div class="glass-card rounded-2xl p-6">
+                                <h3 class="font-semibold mb-4">Quick Adjust</h3>
+                                <div class="space-y-4">
+                                    <div>
+                                        <div class="flex justify-between text-sm mb-2">
+                                            <span>Bass</span>
+                                            <span id="bass-value">0 dB</span>
+                                        </div>
+                                        <input type="range" min="-12" max="12" value="0" class="w-full range-slider" id="bass-control" oninput="updateBass(this.value)">
+                                    </div>
+                                    <div>
+                                        <div class="flex justify-between text-sm mb-2">
+                                            <span>Mid</span>
+                                            <span id="mid-value">0 dB</span>
+                                        </div>
+                                        <input type="range" min="-12" max="12" value="0" class="w-full range-slider" id="mid-control" oninput="updateMid(this.value)">
+                                    </div>
+                                    <div>
+                                        <div class="flex justify-between text-sm mb-2">
+                                            <span>Treble</span>
+                                            <span id="treble-value">0 dB</span>
+                                        </div>
+                                        <input type="range" min="-12" max="12" value="0" class="w-full range-slider" id="treble-control" oninput="updateTreble(this.value)">
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="glass-card rounded-2xl p-6">
+                                <h3 class="font-semibold mb-4">Visualization</h3>
+                                <div id="eq-visualizer" class="h-32 flex items-end justify-between gap-1">
+                                    <!-- EQ bars will be generated -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+            
+            <!-- Player Bar -->
+            <div class="h-24 border-t border-white/5 bg-[#0d0d12] px-6 flex items-center">
+                <!-- Track Info -->
+                <div class="flex items-center gap-4 w-1/4">
+                    <div id="player-artwork" class="w-14 h-14 rounded-lg bg-gradient-to-br from-indigo-500 to-pink-500 flex items-center justify-center">
+                        <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h4 id="player-title" class="font-medium text-sm">No track selected</h4>
+                        <p id="player-artist" class="text-xs text-gray-400">Upload music to begin</p>
+                    </div>
+                    <button id="favorite-btn" onclick="toggleFavorite()" class="p-2 hover:bg-white/5 rounded-full transition">
+                        <svg class="w-5 h-5 text-gray-400 hover:text-pink-500 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+                        </svg>
+                    </button>
+                </div>
+                
+                <!-- Playback Controls -->
+                <div class="flex-1 flex flex-col items-center">
+                    <div class="flex items-center gap-4 mb-2">
+                        <button id="shuffle-btn" onclick="toggleShuffle()" class="p-2 hover:bg-white/5 rounded-full transition">
+                            <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                            </svg>
+                        </button>
+                        <button onclick="previousTrack()" class="p-2 hover:bg-white/5 rounded-full transition">
+                            <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/>
+                            </svg>
+                        </button>
+                        <button id="play-btn" onclick="togglePlay()" class="w-12 h-12 rounded-full bg-white flex items-center justify-center hover:scale-105 transition">
+                            <svg id="play-icon" class="w-6 h-6 text-black ml-1" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M8 5v14l11-7z"/>
+                            </svg>
+                            <svg id="pause-icon" class="w-6 h-6 text-black hidden" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>
+                            </svg>
+                        </button>
+                        <button onclick="nextTrack()" class="p-2 hover:bg-white/5 rounded-full transition">
+                            <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/>
+                            </svg>
+                        </button>
+                        <button id="loop-btn" onclick="toggleLoop()" class="p-2 hover:bg-white/5 rounded-full transition">
+                            <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                            </svg>
+                        </button>
+                    </div>
+                    
+                    <!-- Progress Bar -->
+                    <div class="flex items-center gap-3 w-full max-w-xl">
+                        <span id="current-time" class="text-xs text-gray-400 w-10 text-right">0:00</span>
+                        <div class="flex-1 relative group">
+                            <input type="range" id="progress-bar" min="0" max="100" value="0" class="w-full range-slider" oninput="seekTo(this.value)">
+                        </div>
+                        <span id="total-time" class="text-xs text-gray-400 w-10">0:00</span>
+                    </div>
+                </div>
+                
+                <!-- Volume & Extra Controls -->
+                <div class="flex items-center gap-4 w-1/4 justify-end">
+                    <button class="p-2 hover:bg-white/5 rounded-full transition">
+                        <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"/>
+                        </svg>
+                    </button>
+                    <div class="flex items-center gap-2">
+                        <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15.414a5 5 0 001.414 1.414"/>
+                        </svg>
+                        <input type="range" id="volume-slider" min="0" max="100" value="80" class="w-24 range-slider" oninput="setVolume(this.value)">
+                    </div>
+                    <button onclick="toggleFullscreen()" class="p-2 hover:bg-white/5 rounded-full transition">
+                        <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Application State
+        const state = {
+            tracks: [],
+            currentTrackIndex: -1,
+            isPlaying: false,
+            isShuffled: false,
+            isLooped: false,
+            isFavorite: false,
+            headTrackingEnabled: false,
+            volume: 0.8,
+            audioMode: 'spatial',
+            environment: 'room',
+            spatialPosition: { x: 40, y: -40, z: 0 },
+            eq: {
+                '32': 0, '64': 0, '125': 0, '250': 0, '500': 0,
+                '1k': 0, '2k': 0, '4k': 0, '8k': 0, '16k': 0
+            }
+        };
+
+        // Audio Context and Nodes
+        let audioContext;
+        let sourceNode;
+        let gainNode;
+        let pannerNode;
+        let convolverNode;
+        let analyserNode;
+        let eqFilters = [];
+        let audioElement;
+
+        // Initialize Audio Context
+        function initAudioContext() {
+            if (audioContext) return;
+            
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            
+            // Create nodes
+            gainNode = audioContext.createGain();
+            pannerNode = audioContext.createPanner();
+            analyserNode = audioContext.createAnalyser();
+            convolverNode = audioContext.createConvolver();
+            
+            // Configure panner for 3D audio
+            pannerNode.panningModel = 'HRTF';
+            pannerNode.distanceModel = 'inverse';
+            pannerNode.refDistance = 1;
+            pannerNode.maxDistance = 10000;
+            pannerNode.rolloffFactor = 1;
+            pannerNode.coneInnerAngle = 360;
+            pannerNode.coneOuterAngle = 0;
+            pannerNode.coneOuterGain = 0;
+            
+            // Create EQ filters
+            const frequencies = [32, 64, 125, 250, 500, 1000, 2000, 4000, 8000, 16000];
+            frequencies.forEach((freq, i) => {
+                const filter = audioContext.createBiquadFilter();
+                filter.type = 'peaking';
+                filter.frequency.value = freq;
+                filter.Q.value = 1;
+                filter.gain.value = 0;
+                eqFilters.push(filter);
+            });
+            
+            // Configure analyser
+            analyserNode.fftSize = 256;
+            
+            // Create audio element
+            audioElement = new Audio();
+            audioElement.crossOrigin = 'anonymous';
+            
+            // Connect nodes when audio plays
+            audioElement.addEventListener('canplay', () => {
+                if (!sourceNode) {
+                    sourceNode = audioContext.createMediaElementSource(audioElement);
+                    
+                    // Connect chain: source -> EQ -> panner -> gain -> analyser -> destination
+                    let lastNode = sourceNode;
+                    eqFilters.forEach(filter => {
+                        lastNode.connect(filter);
+                        lastNode = filter;
+                    });
+                    lastNode.connect(pannerNode);
+                    pannerNode.connect(gainNode);
+                    gainNode.connect(analyserNode);
+                    analyserNode.connect(audioContext.destination);
+                }
+            });
+            
+            // Update time display
+            audioElement.addEventListener('timeupdate', updateTimeDisplay);
+            audioElement.addEventListener('ended', handleTrackEnd);
+            
+            // Set initial volume
+            gainNode.gain.value = state.volume;
+            
+            // Generate reverb impulse
+            generateReverbImpulse();
+            
+            // Start visualizer
+            startVisualizer();
+        }
+
+        // Generate reverb impulse response
+        function generateReverbImpulse() {
+            const length = audioContext.sampleRate * 2;
+            const impulse = audioContext.createBuffer(2, length, audioContext.sampleRate);
+            
+            for (let channel = 0; channel < 2; channel++) {
+                const channelData = impulse.getChannelData(channel);
+                for (let i = 0; i < length; i++) {
+                    channelData[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / length, 2);
+                }
+            }
+            
+            convolverNode.buffer = impulse;
+        }
+
+        // File Upload Handler
+        function handleFileUpload(event) {
+            initAudioContext();
+            
+            const files = Array.from(event.target.files);
+            files.forEach(file => {
+                if (file.type.startsWith('audio/')) {
+                    const track = {
+                        id: Date.now() + Math.random(),
+                        name: file.name.replace(/\.[^/.]+$/, ''),
+                        artist: 'Unknown Artist',
+                        file: file,
+                        url: URL.createObjectURL(file),
+                        duration: 0,
+                        favorite: false
+                    };
+                    
+                    // Get duration
+                    const tempAudio = new Audio(track.url);
+                    tempAudio.addEventListener('loadedmetadata', () => {
+                        track.duration = tempAudio.duration;
+                        updateTrackList();
+                    });
+                    
+                    state.tracks.push(track);
+                }
+            });
+            
+            updateTrackList();
+            event.target.value = '';
+        }
+
+        // Update Track List UI
+        function updateTrackList() {
+            const container = document.getElementById('track-list');
+            
+            if (state.tracks.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-12 text-gray-500">
+                        <svg class="w-16 h-16 mx-auto mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"/>
+                        </svg>
+                        <p>No tracks uploaded yet</p>
+                        <p class="text-sm">Click "Upload Music" to add your songs</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = state.tracks.map((track, index) => `
+                <div class="track-item flex items-center gap-4 p-3 rounded-lg cursor-pointer transition ${index === state.currentTrackIndex ? 'bg-white/10' : ''}" onclick="playTrack(${index})">
+                    <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-indigo-500 to-pink-500 flex items-center justify-center flex-shrink-0">
+                        ${index === state.currentTrackIndex && state.isPlaying ? 
+                            '<div class="waveform"><div class="waveform-bar" style="animation-delay: 0s;"></div><div class="waveform-bar" style="animation-delay: 0.1s;"></div><div class="waveform-bar" style="animation-delay: 0.2s;"></div></div>' :
+                            `<span class="text-sm font-medium">${index + 1}</span>`
+                        }
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <h4 class="font-medium text-sm truncate">${track.name}</h4>
+                        <p class="text-xs text-gray-400 truncate">${track.artist}</p>
+                    </div>
+                    <span class="text-xs text-gray-400">${formatTime(track.duration)}</span>
+                    <button onclick="event.stopPropagation(); toggleTrackFavorite(${index})" class="p-2 hover:bg-white/10 rounded-full transition">
+                        <svg class="w-4 h-4 ${track.favorite ? 'text-pink-500 fill-current' : 'text-gray-400'}" fill="${track.favorite ? 'currentColor' : 'none'}" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+                        </svg>
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        // Play Track
+        function playTrack(index) {
+            if (index < 0 || index >= state.tracks.length) return;
+            
+            initAudioContext();
+            audioContext.resume();
+            
+            state.currentTrackIndex = index;
+            const track = state.tracks[index];
+            
+            audioElement.src = track.url;
+            audioElement.play();
+            state.isPlaying = true;
+            
+            updatePlayerUI(track);
+            updatePlayButton();
+            updateTrackList();
+        }
+
+        // Update Player UI
+        function updatePlayerUI(track) {
+            document.getElementById('player-title').textContent = track.name;
+            document.getElementById('player-artist').textContent = track.artist;
+            document.getElementById('current-track-title').textContent = track.name;
+            document.getElementById('current-track-artist').textContent = track.artist;
+            document.getElementById('total-time').textContent = formatTime(track.duration);
+        }
+
+        // Toggle Play/Pause
+        function togglePlay() {
+            if (state.currentTrackIndex === -1 && state.tracks.length > 0) {
+                playTrack(0);
+                return;
+            }
+            
+            if (state.isPlaying) {
+                audioElement.pause();
+                state.isPlaying = false;
+            } else {
+                audioContext.resume();
+                audioElement.play();
+                state.isPlaying = true;
+            }
+            
+            updatePlayButton();
+        }
+
+        // Update Play Button
+        function updatePlayButton() {
+            const playIcon = document.getElementById('play-icon');
+            const pauseIcon = document.getElementById('pause-icon');
+            
+            if (state.isPlaying) {
+                playIcon.classList.add('hidden');
+                pauseIcon.classList.remove('hidden');
+            } else {
+                playIcon.classList.remove('hidden');
+                pauseIcon.classList.add('hidden');
+            }
+            
+            updateTrackList();
+        }
+
+        // Time Display
+        function updateTimeDisplay() {
+            const current = audioElement.currentTime;
+            const total = audioElement.duration || 0;
+            
+            document.getElementById('current-time').textContent = formatTime(current);
+            document.getElementById('progress-bar').value = (current / total) * 100 || 0;
+        }
+
+        // Format Time
+        function formatTime(seconds) {
+            if (isNaN(seconds)) return '0:00';
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${mins}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        // Seek
+        function seekTo(value) {
+            if (audioElement.duration) {
+                audioElement.currentTime = (value / 100) * audioElement.duration;
+            }
+        }
+
+        // Volume
+        function setVolume(value) {
+            state.volume = value / 100;
+            if (gainNode) {
+                gainNode.gain.value = state.volume;
+            }
+        }
+
+        // Previous/Next Track
+        function previousTrack() {
+            if (state.tracks.length === 0) return;
+            let index = state.currentTrackIndex - 1;
+            if (index < 0) index = state.tracks.length - 1;
+            playTrack(index);
+        }
+
+        function nextTrack() {
+            if (state.tracks.length === 0) return;
+            let index = state.currentTrackIndex + 1;
+            if (index >= state.tracks.length) index = 0;
+            playTrack(index);
+        }
+
+        // Handle Track End
+        function handleTrackEnd() {
+            if (state.isLooped) {
+                audioElement.currentTime = 0;
+                audioElement.play();
+            } else {
+                nextTrack();
+            }
+        }
+
+        // Toggle Shuffle
+        function toggleShuffle() {
+            state.isShuffled = !state.isShuffled;
+            document.getElementById('shuffle-btn').classList.toggle('text-indigo-500', state.isShuffled);
+        }
+
+        // Toggle Loop
+        function toggleLoop() {
+            state.isLooped = !state.isLooped;
+            document.getElementById('loop-btn').classList.toggle('text-indigo-500', state.isLooped);
+        }
+
+        // Toggle Favorite
+        function toggleFavorite() {
+            if (state.currentTrackIndex === -1) return;
+            state.tracks[state.currentTrackIndex].favorite = !state.tracks[state.currentTrackIndex].favorite;
+            updateTrackList();
+        }
+
+        function toggleTrackFavorite(index) {
+            state.tracks[index].favorite = !state.tracks[index].favorite;
+            updateTrackList();
+        }
+
+        // Section Navigation
+        function showSection(section) {
+            document.querySelectorAll('section[id^="section-"]').forEach(s => s.classList.add('hidden'));
+            document.getElementById(`section-${section}`).classList.remove('hidden');
+            
+            document.querySelectorAll('.nav-item').forEach(btn => {
+                btn.classList.remove('bg-white/5', 'text-white');
+                btn.classList.add('text-gray-400');
+            });
+        }
+
+        // 3D Spatial Controls
+        function update3DDepth(value) {
+            document.getElementById('depth-value').textContent = `${value}%`;
+            if (pannerNode) {
+                pannerNode.rolloffFactor = value / 50;
+            }
+        }
+
+        function updateRoomSize(value) {
+            document.getElementById('room-value').textContent = `${value}%`;
+            // Update reverb parameters
+        }
+
+        function updateReverb(value) {
+            document.getElementById('reverb-value').textContent = `${value}%`;
+            // Adjust wet/dry mix
+        }
+
+        function updateAudioMode(mode) {
+            state.audioMode = mode;
+            // Apply audio mode changes
+        }
+
+        function updateSoundPosition() {
+            const x = document.getElementById('pos-x').value;
+            const y = document.getElementById('pos-y').value;
+            const z = document.getElementById('pos-z').value;
+            
+            state.spatialPosition = { x, y, z };
+            
+            if (pannerNode) {
+                pannerNode.setPosition(x / 10, z / 10, y / 10);
+            }
+            
+            // Update visual position
+            const source = document.getElementById('sound-source');
+            const container = document.getElementById('spatial-canvas');
+            const rect = container.getBoundingClientRect();
+            
+            source.style.left = `${50 + (x / 2)}%`;
+            source.style.top = `${50 - (y / 2)}%`;
+        }
+
+        // Environment Presets
+        function setEnvironment(env) {
+            state.environment = env;
+            
+            document.querySelectorAll('.env-btn').forEach(btn => {
+                btn.classList.remove('bg-indigo-500/20', 'border', 'border-indigo-500/50');
+                btn.classList.add('bg-white/5');
+            });
+            
+            event.target.closest('.env-btn').classList.remove('bg-white/5');
+            event.target.closest('.env-btn').classList.add('bg-indigo-500/20', 'border', 'border-indigo-500/50');
+            
+            // Apply environment preset
+            const presets = {
+                studio: { room: 10, reverb: 5, distance: 30 },
+                room: { room: 50, reverb: 30, distance: 50 },
+                hall: { room: 80, reverb: 60, distance: 70 },
+                open: { room: 100, reverb: 20, distance: 100 }
+            };
+            
+            const preset = presets[env];
+            document.getElementById('room-slider').value = preset.room;
+            document.getElementById('reverb-slider').value = preset.reverb;
+            document.getElementById('room-value').textContent = `${preset.room}%`;
+            document.getElementById('reverb-value').textContent = `${preset.reverb}%`;
+        }
+
+        // Head Tracking
+        let headTrackingCalibration = { alpha: 0, beta: 0, gamma: 0 };
+
+        function toggleHeadTracking() {
+            state.headTrackingEnabled = !state.headTrackingEnabled;
+            const indicator = document.getElementById('tracking-indicator');
+            
+            if (state.headTrackingEnabled) {
+                indicator.classList.remove('bg-gray-500');
+                indicator.classList.add('bg-green-500');
+                
+                if (window.DeviceOrientationEvent) {
+                    window.addEventListener('deviceorientation', handleDeviceOrientation);
+                }
+            } else {
+                indicator.classList.remove('bg-green-500');
+                indicator.classList.add('bg-gray-500');
+                window.removeEventListener('deviceorientation', handleDeviceOrientation);
+            }
+        }
+
+        function handleDeviceOrientation(event) {
+            if (!state.headTrackingEnabled) return;
+            
+            const alpha = event.alpha - headTrackingCalibration.alpha;
+            const beta = event.beta - headTrackingCalibration.beta;
+            const gamma = event.gamma - headTrackingCalibration.gamma;
+            
+            // Update listener orientation
+            if (audioContext && audioContext.listener) {
+                const radians = alpha * Math.PI / 180;
+                audioContext.listener.setOrientation(
+                    Math.sin(radians), 0, -Math.cos(radians),
+                    0, 1, 0
+                );
+            }
+            
+            // Update visual indicator
+            document.getElementById('head-rotation').style.transform = `rotate(${-alpha}deg)`;
+            document.getElementById('listener-indicator').style.transform = `translate(-50%, -50%) rotate(${-alpha}deg)`;
+            document.getElementById('rotation-display').textContent = `${Math.round(alpha)}°`;
+        }
+
+        function calibrateHeadTracking() {
+            if (window.DeviceOrientationEvent) {
+                window.addEventListener('deviceorientation', (event) => {
+                    headTrackingCalibration = {
+                        alpha: event.alpha,
+                        beta: event.beta,
+                        gamma: event.gamma
+                    };
+                }, { once: true });
+            }
+        }
+
+        // Equalizer
+        function updateEQ(slider) {
+            const freq = slider.dataset.freq;
+            const value = slider.value;
+            state.eq[freq] = value;
+            
+            // Update actual EQ filter
+            const freqMap = { '32': 0, '64': 1, '125': 2, '250': 3, '500': 4, '1k': 5, '2k': 6, '4k': 7, '8k': 8, '16k': 9 };
+            if (eqFilters[freqMap[freq]]) {
+                eqFilters[freqMap[freq]].gain.value = value;
+            }
+        }
+
+        function updateBass(value) {
+            document.getElementById('bass-value').textContent = `${value} dB`;
+            // Update low frequency filters
+            [0, 1, 2].forEach(i => {
+                if (eqFilters[i]) eqFilters[i].gain.value = value;
+            });
+        }
+
+        function updateMid(value) {
+            document.getElementById('mid-value').textContent = `${value} dB`;
+            [3, 4, 5, 6].forEach(i => {
+                if (eqFilters[i]) eqFilters[i].gain.value = value;
+            });
+        }
+
+        function updateTreble(value) {
+            document.getElementById('treble-value').textContent = `${value} dB`;
+            [7, 8, 9].forEach(i => {
+                if (eqFilters[i]) eqFilters[i].gain.value = value;
+            });
+        }
+
+        function resetEQ() {
+            document.querySelectorAll('.eq-slider').forEach(slider => {
+                slider.value = 0;
+            });
+            document.getElementById('bass-control').value = 0;
+            document.getElementById('mid-control').value = 0;
+            document.getElementById('treble-control').value = 0;
+            document.getElementById('bass-value').textContent = '0 dB';
+            document.getElementById('mid-value').textContent = '0 dB';
+            document.getElementById('treble-value').textContent = '0 dB';
+            
+            eqFilters.forEach(filter => filter.gain.value = 0);
+        }
+
+        function loadEQPreset(preset) {
+            const presets = {
+                flat: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                bass: [6, 5, 4, 2, 0, 0, 0, 0, 0, 0],
+                treble: [0, 0, 0, 0, 0, 0, 2, 4, 5, 6],
+                vocal: [-2, -2, 0, 2, 4, 4, 2, 0, -2, -2],
+                electronic: [4, 3, 0, -2, 0, 2, 0, 2, 4, 3],
+                rock: [4, 3, 2, 0, -2, 0, 2, 3, 4, 4]
+            };
+            
+            const values = presets[preset] || presets.flat;
+            const sliders = document.querySelectorAll('.eq-slider');
+            
+            sliders.forEach((slider, i) => {
+                slider.value = values[i];
+                if (eqFilters[i]) eqFilters[i].gain.value = values[i];
+            });
+        }
+
+        // Visualizer
+        function startVisualizer() {
+            const container = document.getElementById('3d-visualizer');
+            if (!container) return;
+            
+            // Setup Three.js scene
+            const scene = new THREE.Scene();
+            const camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000);
+            const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+            
+            renderer.setSize(container.clientWidth, container.clientHeight);
+            renderer.setClearColor(0x000000, 0);
+            container.appendChild(renderer.domElement);
+            
+            // Create bars
+            const bars = [];
+            const barCount = 32;
+            const geometry = new THREE.BoxGeometry(0.3, 1, 0.3);
+            
+            for (let i = 0; i < barCount; i++) {
+                const material = new THREE.MeshBasicMaterial({
+                    color: new THREE.Color().setHSL(i / barCount * 0.5 + 0.5, 1, 0.5)
+                });
+                const bar = new THREE.Mesh(geometry, material);
+                bar.position.x = (i - barCount / 2) * 0.5;
+                scene.add(bar);
+                bars.push(bar);
+            }
+            
+            camera.position.z = 15;
+            camera.position.y = 3;
+            camera.lookAt(0, 0, 0);
+            
+            // Animation
+            function animate() {
+                requestAnimationFrame(animate);
+                
+                if (analyserNode && state.isPlaying) {
+                    const dataArray = new Uint8Array(analyserNode.frequencyBinCount);
+                    analyserNode.getByteFrequencyData(dataArray);
+                    
+                    bars.forEach((bar, i) => {
+                        const value = dataArray[i * 2] / 255;
+                        bar.scale.y = value * 5 + 0.1;
+                        bar.position.y = bar.scale.y / 2;
+                    });
+                } else {
+                    bars.forEach((bar, i) => {
+                        const time = Date.now() * 0.001;
+                        bar.scale.y = (Math.sin(time * 2 + i * 0.3) + 1) * 0.5 + 0.2;
+                        bar.position.y = bar.scale.y / 2;
+                    });
+                }
+                
+                scene.rotation.y += 0.002;
+                renderer.render(scene, camera);
+            }
+            
+            animate();
+            
+            // Handle resize
+            window.addEventListener('resize', () => {
+                camera.aspect = container.clientWidth / container.clientHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(container.clientWidth, container.clientHeight);
+            });
+        }
+
+        // EQ Visualizer
+        function initEQVisualizer() {
+            const container = document.getElementById('eq-visualizer');
+            for (let i = 0; i < 20; i++) {
+                const bar = document.createElement('div');
+                bar.className = 'flex-1 bg-gradient-to-t from-indigo-500 to-pink-500 rounded-sm transition-all duration-100';
+                bar.style.height = '20%';
+                container.appendChild(bar);
+            }
+        }
+
+        // Toggle Fullscreen
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen();
+            } else {
+                document.exitFullscreen();
+            }
+        }
+
+        // Drag Sound Source
+        function initDraggableSoundSource() {
+            const source = document.getElementById('sound-source');
+            const container = document.getElementById('spatial-canvas');
+            
+            if (!source || !container) return;
+            
+            let isDragging = false;
+            
+            source.addEventListener('mousedown', () => isDragging = true);
+            document.addEventListener('mouseup', () => isDragging = false);
+            
+            container.addEventListener('mousemove', (e) => {
+                if (!isDragging) return;
+                
+                const rect = container.getBoundingClientRect();
+                const x = ((e.clientX - rect.left) / rect.width) * 200 - 100;
+                const y = -((e.clientY - rect.top) / rect.height) * 200 + 100;
+                
+                document.getElementById('pos-x').value = x;
+                document.getElementById('pos-y').value = y;
+                updateSoundPosition();
+            });
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            initEQVisualizer();
+            initDraggableSoundSource();
+            
+            // Demo tracks message
+            console.log('SpatialSound initialized. Upload your music to experience 3D spatial audio!');
+        });
+    </script>
+</body>
+</html>
